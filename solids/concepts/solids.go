@@ -2,6 +2,7 @@ package solids
 
 import (
 	"context"
+	"errors"
 	"fmt"
 )
 
@@ -749,3 +750,260 @@ the Open/Closed Principle.
 */
 
 //==================================================================LSP==================================================================
+
+// ===================================================================
+// Liskov Substitution Principle (LSP)
+// ===================================================================
+//
+// LSP states:
+//
+// Objects of derived types should be replaceable
+// with objects of their base type
+// WITHOUT breaking expected behavior.
+//
+// In Go:
+//
+// Any implementation of an interface should behave
+// in a way that callers expect.
+//
+// LSP is NOT just about matching method signatures.
+//
+// It is about preserving:
+// - behavioral correctness
+// - expected contracts
+// - predictable system behavior
+
+// ===================================================================
+// Authentication Interface
+// ===================================================================
+
+// AuthenticationService defines expected behavior
+// for authenticating users.
+//
+// Any implementation must:
+// - return true for valid credentials
+// - return false for invalid credentials
+// - return errors only for system failures
+//
+// Implementations should NOT:
+// - panic unexpectedly
+// - return inconsistent behavior
+type AuthenticationService interface {
+	Authenticate(
+		username string,
+		password string,
+	) (bool, error)
+}
+
+// ===================================================================
+// Database Authentication Implementation
+// ===================================================================
+
+type DatabaseAuthService struct{}
+
+// Authenticate validates credentials
+// using a database-backed authentication system.
+func (s *DatabaseAuthService) Authenticate(
+	username string,
+	password string,
+) (bool, error) {
+
+	if username == "" || password == "" {
+		return false, errors.New(
+			"username and password required",
+		)
+	}
+
+	// simulate successful authentication
+	if username == "admin" &&
+		password == "password123" {
+
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// ===================================================================
+// API Authentication Implementation
+// ===================================================================
+
+type APIAuthService struct{}
+
+// Authenticate validates credentials
+// using an external authentication API.
+//
+// IMPORTANT:
+//
+// This implementation preserves the SAME behavioral contract
+// as DatabaseAuthService.
+//
+// Therefore it satisfies LSP.
+func (s *APIAuthService) Authenticate(
+	username string,
+	password string,
+) (bool, error) {
+
+	if username == "" || password == "" {
+		return false, errors.New(
+			"username and password required",
+		)
+	}
+
+	// simulate successful authentication
+	if username == "admin" &&
+		password == "password123" {
+
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// ===================================================================
+// BAD IMPLEMENTATION — Violates LSP
+// ===================================================================
+
+// BrokenAuthService technically satisfies interface
+// BUT breaks expected behavior.
+type BrokenAuthService struct{}
+
+func (s *BrokenAuthService) Authenticate(
+	username string,
+	password string,
+) (bool, error) {
+
+	// BAD:
+	// panic violates expected contract
+	panic("authentication system crashed")
+}
+
+// ===================================================================
+// Login Workflow
+// ===================================================================
+
+// LoginUser works with ANY AuthenticationService.
+//
+// As long as implementations preserve expected behavior,
+// this function works correctly.
+//
+// This is LSP in action.
+func LoginUser(
+	auth AuthenticationService,
+	username string,
+	password string,
+) {
+
+	ok, err := auth.Authenticate(
+		username,
+		password,
+	)
+
+	if err != nil {
+		fmt.Println(
+			"authentication error:",
+			err,
+		)
+		return
+	}
+
+	if !ok {
+		fmt.Println("invalid credentials")
+		return
+	}
+
+	fmt.Println("login successful")
+}
+
+// ===================================================================
+// Main Function
+// ===================================================================
+
+func LSPMain() {
+
+	// ---------------------------------------------------------------
+	// Database Authentication
+	// ---------------------------------------------------------------
+
+	dbAuth := &DatabaseAuthService{}
+
+	LoginUser(
+		dbAuth,
+		"admin",
+		"password123",
+	)
+
+	// ---------------------------------------------------------------
+	// API Authentication
+	// ---------------------------------------------------------------
+
+	apiAuth := &APIAuthService{}
+
+	LoginUser(
+		apiAuth,
+		"admin",
+		"password123",
+	)
+
+	// ---------------------------------------------------------------
+	// Broken Implementation
+	// ---------------------------------------------------------------
+
+	// This compiles...
+	// BUT violates LSP behavior contract.
+
+	// brokenAuth := &BrokenAuthService{}
+	// LoginUser(
+	// 	brokenAuth,
+	// 	"admin",
+	// 	"password123",
+	// )
+}
+
+// ===================================================================
+// Why This Design Matters
+// ===================================================================
+
+/*
+GOOD LSP DESIGN:
+
+Code depending on AuthenticationService
+can safely use ANY implementation
+without unexpected behavior changes.
+
+Benefits:
+- predictable behavior
+- safer abstraction
+- interchangeable implementations
+- easier testing
+- cleaner architecture
+
+------------------------------------------------------------
+
+IMPORTANT INSIGHT:
+
+LSP is NOT:
+
+    "Does it compile?"
+
+LSP IS:
+
+    "Does it preserve expected behavior?"
+
+------------------------------------------------------------
+
+BAD IMPLEMENTATION:
+
+Compiles successfully
+BUT breaks behavioral expectations.
+
+That is an LSP violation.
+
+------------------------------------------------------------
+
+Most Important Takeaway:
+
+Interfaces define method signatures.
+
+LSP defines behavioral correctness.
+*/
