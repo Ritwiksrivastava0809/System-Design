@@ -1,6 +1,9 @@
 package solids
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 // SOLID Principles
 //
@@ -176,3 +179,573 @@ It does not care:
 This is the core idea behind
 the Dependency Inversion Principle.
 */
+
+//===================================================================OCP===================================================================
+
+// Open/Closed Principle (OCP)
+//
+// Software entities (classes, modules, functions, etc.)
+// should be open for extension but closed for modification.
+//
+// This means you should be able to add new functionality
+// without changing existing code.
+//
+// In Go, we can achieve this through interfaces and composition.
+//
+// Example:
+// - Define an interface for a shape
+// - Implement different shapes (Circle, Rectangle) that satisfy the interface
+// - Add new shapes without modifying existing code
+
+type Shape interface {
+	Area() float64
+}
+
+type Circle struct {
+	Radius float64
+}
+
+func (c Circle) Area() float64 {
+	return 3.14 * c.Radius * c.Radius
+}
+
+type Rectangle struct {
+	Width  float64
+	Height float64
+}
+
+func (r Rectangle) Area() float64 {
+	return r.Width * r.Height
+}
+
+// To add a new shape, we simply implement the Shape interface
+// without modifying existing code.
+// This adheres to the Open/Closed Principle.
+type Triangle struct {
+	Base   float64
+	Height float64
+}
+
+func (t Triangle) Area() float64 {
+	return 0.5 * t.Base * t.Height
+}
+
+// The function to calculate total area can work with any shape
+// without modification, adhering to OCP.
+func TotalArea(shapes []Shape) float64 {
+	var total float64
+	for _, shape := range shapes {
+		total += shape.Area()
+	}
+	return total
+}
+
+// The main function demonstrates how we can use the TotalArea function
+// with different shapes without changing the TotalArea implementation.
+// This design allows us to extend functionality (adding new shapes)
+// without modifying existing code, following the Open/Closed Principle.
+func ShapeMain() {
+	shapes := []Shape{
+		Circle{Radius: 5},
+		Rectangle{Width: 4, Height: 6},
+		Triangle{Base: 3, Height: 4},
+	}
+
+	fmt.Printf("Total Area: %.2f\n", TotalArea(shapes))
+}
+
+// ===================================================================
+// Open/Closed Principle (OCP)
+// ===================================================================
+//
+// Software entities should be:
+// - open for extension
+// - closed for modification
+//
+// Meaning:
+//
+// We should be able to add new functionality
+// without modifying stable existing code.
+//
+// In Go, OCP is commonly achieved using:
+// - interfaces
+// - composition
+// - dependency injection
+//
+// ===================================================================
+// BAD DESIGN — Violates OCP
+// ===================================================================
+
+type PaymentService struct{}
+
+// Problem:
+//
+// Every time a new provider is added:
+// - Stripe
+// - PayPal
+// - Razorpay
+// - ApplePay
+//
+// we must MODIFY this function.
+//
+// This creates:
+// - growing if-else chains
+// - regression risk
+// - merge conflicts
+// - poor maintainability
+func (s *PaymentService) Pay(
+	amount float64,
+	provider string,
+) error {
+
+	if provider == "stripe" {
+
+		fmt.Println("Processing payment with Stripe")
+
+	} else if provider == "paypal" {
+
+		fmt.Println("Processing payment with PayPal")
+
+	} else {
+
+		return fmt.Errorf(
+			"unsupported payment provider: %s",
+			provider,
+		)
+	}
+
+	return nil
+}
+
+// ===================================================================
+// GOOD DESIGN — Follows OCP
+// ===================================================================
+
+// PaymentProvider defines the behavior required
+// for any payment provider.
+//
+// Any new provider only needs to implement this interface.
+type PaymentProvider interface {
+	Pay(amount float64) error
+}
+
+// ===================================================================
+// Stripe Implementation
+// ===================================================================
+
+type StripeProvider struct{}
+
+func (s *StripeProvider) Pay(amount float64) error {
+
+	fmt.Printf(
+		"Processing ₹%.2f payment using Stripe\n",
+		amount,
+	)
+
+	return nil
+}
+
+// ===================================================================
+// PayPal Implementation
+// ===================================================================
+
+type PayPalProvider struct{}
+
+func (p *PayPalProvider) Pay(amount float64) error {
+
+	fmt.Printf(
+		"Processing ₹%.2f payment using PayPal\n",
+		amount,
+	)
+
+	return nil
+}
+
+// ===================================================================
+// Razorpay Implementation
+// ===================================================================
+
+// Notice:
+//
+// We are EXTENDING the system
+// without modifying existing service logic.
+//
+// This is the essence of OCP.
+type RazorpayProvider struct{}
+
+func (r *RazorpayProvider) Pay(amount float64) error {
+
+	fmt.Printf(
+		"Processing ₹%.2f payment using Razorpay\n",
+		amount,
+	)
+
+	return nil
+}
+
+// ===================================================================
+// Payment Service
+// ===================================================================
+
+// PaymentServiceV2 depends on abstraction
+// instead of concrete implementations.
+//
+// This follows:
+// - OCP
+// - Dependency Inversion Principle (DIP)
+type PaymentServiceV2 struct {
+	provider PaymentProvider
+}
+
+// Constructor Injection
+//
+// The payment provider is injected from outside.
+//
+// This allows us to switch providers
+// without modifying service logic.
+func NewPaymentServiceV2(
+	provider PaymentProvider,
+) *PaymentServiceV2 {
+
+	return &PaymentServiceV2{
+		provider: provider,
+	}
+}
+
+// Checkout contains business workflow.
+//
+// The service delegates payment processing
+// to whichever provider implementation
+// was injected.
+func (s *PaymentServiceV2) Checkout(
+	amount float64,
+) error {
+
+	return s.provider.Pay(amount)
+}
+
+// ===================================================================
+// Main Function
+// ===================================================================
+
+func Paymain() {
+
+	// ---------------------------------------------------------------
+	// Stripe Example
+	// ---------------------------------------------------------------
+
+	stripeProvider := &StripeProvider{}
+
+	stripeService := NewPaymentServiceV2(
+		stripeProvider,
+	)
+
+	stripeService.Checkout(1500)
+
+	// ---------------------------------------------------------------
+	// PayPal Example
+	// ---------------------------------------------------------------
+
+	paypalProvider := &PayPalProvider{}
+
+	paypalService := NewPaymentServiceV2(
+		paypalProvider,
+	)
+
+	paypalService.Checkout(2200)
+
+	// ---------------------------------------------------------------
+	// Razorpay Example
+	// ---------------------------------------------------------------
+
+	razorpayProvider := &RazorpayProvider{}
+
+	razorpayService := NewPaymentServiceV2(
+		razorpayProvider,
+	)
+
+	razorpayService.Checkout(5000)
+}
+
+// ===================================================================
+// Why This Design Is Better
+// ===================================================================
+
+/*
+Benefits of OCP-Compliant Design:
+
+1. Extensibility
+	New payment providers can be added
+	without changing existing business logic.
+
+2. Maintainability
+	Stable code remains untouched.
+
+3. Lower Regression Risk
+	Existing payment flow is less likely to break.
+
+4. Easier Testing
+	Mock providers can be injected during tests.
+
+5. Better Separation of Concerns
+	Each provider owns its own payment logic.
+
+6. Cleaner Architecture
+	Business workflow remains independent
+	from infrastructure/provider details.
+
+------------------------------------------------------------
+
+Most Important Insight:
+
+BAD DESIGN:
+    Modify existing logic for every new provider
+
+GOOD DESIGN:
+    Extend system by adding new implementations
+
+That is the essence of
+the Open/Closed Principle.
+*/
+
+// ===================================================================
+// BAD DESIGN — Violates OCP
+// ===================================================================
+
+// Problem:
+//
+// Every new notification channel requires modifying
+// SendNotification().
+//
+// This creates:
+// - growing if-else chains
+// - regression risk
+// - harder maintenance
+// - tightly coupled logic
+type Notifier struct{}
+
+func (n *Notifier) SendNotification(
+	message string,
+	channel string,
+) error {
+
+	if channel == "email" {
+
+		fmt.Printf(
+			"Sending EMAIL notification: %s\n",
+			message,
+		)
+
+	} else if channel == "sms" {
+
+		fmt.Printf(
+			"Sending SMS notification: %s\n",
+			message,
+		)
+
+	} else {
+
+		return fmt.Errorf(
+			"unsupported notification channel: %s",
+			channel,
+		)
+	}
+
+	return nil
+}
+
+// ===================================================================
+// GOOD DESIGN — Follows OCP
+// ===================================================================
+
+// NotificationChannel defines behavior
+// required for sending notifications.
+//
+// Any new notification channel only needs
+// to implement this interface.
+type NotificationChannel interface {
+	Send(message string) error
+}
+
+// ===================================================================
+// Email Notification Implementation
+// ===================================================================
+
+type EmailNotifier struct{}
+
+func (e *EmailNotifier) Send(
+	message string,
+) error {
+
+	fmt.Printf(
+		"Sending EMAIL notification: %s\n",
+		message,
+	)
+
+	return nil
+}
+
+// ===================================================================
+// SMS Notification Implementation
+// ===================================================================
+
+type SMSNotifier struct{}
+
+func (s *SMSNotifier) Send(
+	message string,
+) error {
+
+	fmt.Printf(
+		"Sending SMS notification: %s\n",
+		message,
+	)
+
+	return nil
+}
+
+// ===================================================================
+// Push Notification Implementation
+// ===================================================================
+
+// New notification channels can be added
+// WITHOUT modifying existing service logic.
+//
+// This is the essence of OCP.
+type PushNotifier struct{}
+
+func (p *PushNotifier) Send(
+	message string,
+) error {
+
+	fmt.Printf(
+		"Sending PUSH notification: %s\n",
+		message,
+	)
+
+	return nil
+}
+
+// ===================================================================
+// Notification Service
+// ===================================================================
+
+// NotificationService depends on abstraction
+// instead of concrete implementations.
+//
+// This follows:
+// - Open/Closed Principle
+// - Dependency Inversion Principle
+type NotificationService struct {
+	channel NotificationChannel
+}
+
+// Constructor Injection
+//
+// The notification channel is injected externally.
+func NewNotificationService(
+	channel NotificationChannel,
+) *NotificationService {
+
+	return &NotificationService{
+		channel: channel,
+	}
+}
+
+// Notify handles notification workflow.
+//
+// The actual sending logic is delegated
+// to the injected channel implementation.
+func (s *NotificationService) Notify(
+	message string,
+) error {
+
+	return s.channel.Send(message)
+}
+
+// ===================================================================
+// Main Function
+// ===================================================================
+
+func NotificationMain() {
+
+	// ---------------------------------------------------------------
+	// Email Notification
+	// ---------------------------------------------------------------
+
+	emailService := NewNotificationService(
+		&EmailNotifier{},
+	)
+
+	emailService.Notify(
+		"Hello via Email!",
+	)
+
+	// ---------------------------------------------------------------
+	// SMS Notification
+	// ---------------------------------------------------------------
+
+	smsService := NewNotificationService(
+		&SMSNotifier{},
+	)
+
+	smsService.Notify(
+		"Hello via SMS!",
+	)
+
+	// ---------------------------------------------------------------
+	// Push Notification
+	// ---------------------------------------------------------------
+
+	pushService := NewNotificationService(
+		&PushNotifier{},
+	)
+
+	pushService.Notify(
+		"Hello via Push Notification!",
+	)
+}
+
+// ===================================================================
+// Why This Design Is Better
+// ===================================================================
+
+/*
+Benefits:
+
+1. Open for Extension
+	We can add:
+	- WhatsAppNotifier
+	- SlackNotifier
+	- DiscordNotifier
+	- WebhookNotifier
+
+    without changing existing code.
+
+2. Closed for Modification
+    NotificationService remains stable.
+
+3. Easier Testing
+    Mock channels can be injected.
+
+4. Better Maintainability
+    Each notifier owns its own logic.
+
+5. Cleaner Architecture
+    Business workflow is separated
+    from delivery mechanism.
+
+------------------------------------------------------------
+
+Most Important Insight:
+
+BAD DESIGN:
+    Existing logic changes for every new feature
+
+GOOD DESIGN:
+    New behavior added through new implementations
+
+That is the core idea behind
+the Open/Closed Principle.
+*/
+
+//==================================================================LSP==================================================================
