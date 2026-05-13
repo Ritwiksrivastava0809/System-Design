@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"system-design/solids/SRP/models"
 	"system-design/solids/SRP/service"
 )
@@ -24,13 +25,13 @@ func main() {
 	// Authenticate the user
 	isAuthenticated, err := authService.Authenticate(user.UserName, user.Password)
 	if err != nil {
-		panic(err)
+		fmt.Println("Error occurred while authenticating user:", err.Error())
 	}
 
 	if isAuthenticated {
-		println("User authenticated successfully!")
+		fmt.Println("User authenticated successfully!")
 	} else {
-		println("Authentication failed.")
+		fmt.Println("Authentication failed.")
 	}
 
 }
