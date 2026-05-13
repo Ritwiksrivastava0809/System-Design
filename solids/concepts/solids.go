@@ -1305,3 +1305,133 @@ func main() {
 	marketing.SendCampaign()
 	otp.SendOTP()
 }
+
+//===================================================================DIP===================================================================
+
+// ===================================================================
+// Dependency Inversion Principle (DIP)
+// ===================================================================
+
+// DIP states:
+
+// High-level modules should not depend on low-level modules.
+// Both should depend on abstractions.
+//
+// Abstractions should not depend on details.
+// Details should depend on abstractions.
+//
+// In Go, this is achieved through:
+// - interfaces
+// - dependency injection
+//
+// Benefits of DIP:
+// - decoupled architecture
+// - easier testing
+// - flexible implementations
+// - improved maintainability
+
+// ===================================================================
+// Example: Notification System
+// ===================================================================
+
+// NotificationService defines the abstraction for sending notifications.
+type NotificationServiceV3 interface {
+	SendNotification(message string) error
+}
+
+type NotificationManager struct {
+	service NotificationServiceV3
+}
+
+// Constructor Injection
+func NewNotificationManager(
+	service NotificationServiceV3,
+) *NotificationManager {
+
+	return &NotificationManager{
+		service: service,
+	}
+}
+
+func (m *NotificationManager) Notify(message string) error {
+	return m.service.SendNotification(message)
+}
+
+// ===================================================================
+// Implementations
+// ===================================================================
+
+// EmailNotificationService implements the NotificationService interface to send email notifications.
+type EmailNotificationService struct{}
+
+func (ens *EmailNotificationService) SendNotification(message string) error {
+	// Logic to send email notification
+	println("Sending email notification with message:", message)
+	return nil
+}
+
+// SMSNotificationService implements the NotificationService interface to send SMS notifications.
+type SMSNotificationService struct{}
+
+func (sns *SMSNotificationService) SendNotification(message string) error {
+	// Logic to send SMS notification
+	println("Sending SMS notification with message:", message)
+	return nil
+}
+
+// PushNotificationService implements the NotificationService interface for sending push notifications.
+type PushNotificationService struct{}
+
+func (p *PushNotificationService) SendNotification(message string) error {
+	// Simulate sending a push notification
+	println("Sending push notification:", message)
+	return nil
+}
+
+// ===================================================================
+// Main Function
+// ===================================================================
+
+func DIPMain() {
+
+	emailService := &EmailNotificationService{}
+	smsService := &SMSNotificationService{}
+	pushService := &PushNotificationService{}
+
+	emailManager := NewNotificationManager(emailService)
+	smsManager := NewNotificationManager(smsService)
+	pushManager := NewNotificationManager(pushService)
+
+	emailManager.Notify("Hello via Email!")
+	smsManager.Notify("Hello via SMS!")
+	pushManager.Notify("Hello via Push Notification!")
+}
+
+// ===================================================================
+// Why This Design Matters
+// ===================================================================
+
+/*
+Benefits of DIP-Compliant Design:
+
+1. Decoupled Architecture
+	High-level logic is independent of low-level details.
+
+2. Easier Testing
+	Mock implementations can be injected for testing.
+
+3. Flexible Implementations
+	New notification channels can be added without changing existing code.
+
+4. Improved Maintainability
+	Changes to one implementation do not affect others.
+
+------------------------------------------------------------
+
+Most Important Insight:
+
+DIP is about depending on abstractions
+rather than concrete implementations.
+
+This leads to a more flexible and maintainable architecture.
+*/
