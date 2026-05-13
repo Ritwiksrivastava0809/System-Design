@@ -1007,3 +1007,301 @@ Interfaces define method signatures.
 
 LSP defines behavioral correctness.
 */
+
+//==================================================================ISP==================================================================
+
+// ===================================================================
+// Interface Segregation Principle (ISP)
+// ===================================================================
+//
+// ISP states:
+//
+// Clients should not be forced to depend on methods
+// they do not use.
+//
+// In Go, this means:
+// - interfaces should be small and focused
+// - clients should only depend on the methods they need
+//
+// Benefits of ISP:
+// - better modularity
+// - easier testing
+// - clearer contracts
+// - reduced coupling
+// - improved maintainability
+
+// ===================================================================
+// Monolithic Interface — Violates ISP
+// ===================================================================
+
+// This interface is too broad.
+//
+// Clients that only need to send emails
+// are forced to implement SMS and Push methods.
+//
+// This creates:
+// - unnecessary dependencies
+// - harder testing
+// - more complex implementations
+type NotifierV1 interface {
+	SendEmail(message string) error
+	SendSMS(message string) error
+	SendPush(message string) error
+}
+
+// ===================================================================
+// Segregated Interfaces — Follows ISP
+// ===================================================================
+
+// Each interface is focused on a specific notification channel.
+//
+// Clients can implement only the interfaces they need,
+// adhering to the Interface Segregation Principle.
+type EmailNotifierV2 interface {
+	SendEmail(message string) error
+}
+
+type SMSNotifierV2 interface {
+	SendSMS(message string) error
+}
+
+type PushNotifierV2 interface {
+	SendPush(message string) error
+}
+
+// ===================================================================
+// Implementations
+// ===================================================================
+
+type EmailServiceV1 struct{}
+
+func (e *EmailServiceV1) SendEmail(
+	message string,
+) error {
+
+	fmt.Printf(
+		"Sending EMAIL notification: %s\n",
+		message,
+	)
+
+	return nil
+}
+
+type SMSServiceV1 struct{}
+
+func (s *SMSServiceV1) SendSMS(
+	message string,
+) error {
+
+	fmt.Printf(
+		"Sending SMS notification: %s\n",
+		message,
+	)
+
+	return nil
+}
+
+type PushServiceV1 struct{}
+
+func (p *PushServiceV1) SendPush(
+	message string,
+) error {
+
+	fmt.Printf(
+		"Sending PUSH notification: %s\n",
+		message,
+	)
+
+	return nil
+}
+
+// ===================================================================
+// Main Function
+// ===================================================================
+
+func ISPMain() {
+
+	email := &EmailService{}
+	sms := &SMSService{}
+	push := &PushService{}
+
+	email.SendEmail("Hello via Email!")
+	sms.SendSMS("Hello via SMS!")
+	push.SendPush("Hello via Push Notification!")
+}
+
+// ===================================================================
+// Why This Design Matters
+// ===================================================================
+
+/*
+Benefits of ISP-Compliant Design:
+
+1. Focused Interfaces
+	Clients only depend on what they need.
+
+2. Easier Testing
+	Mock implementations can be created for specific interfaces.
+
+3. Clearer Contracts
+	Each interface has a single responsibility.
+
+4. Reduced Coupling
+	Changes to one interface do not affect clients of another.
+
+5. Improved Maintainability
+	Smaller interfaces are easier to understand and maintain.
+
+------------------------------------------------------------
+
+Most Important Insight:
+
+ISP is about creating focused, cohesive interfaces that clients can depend on without being forced to implement methods they do not use.
+*/
+
+// ================================================================
+// Interface Segregation Principle (ISP)
+// ================================================================
+//
+// ISP:
+// Clients should not depend on methods they do not use.
+//
+// In Go:
+// - keep interfaces small
+// - define interfaces around behavior
+// - prefer focused contracts
+//
+// Go proverb:
+// "The bigger the interface, the weaker the abstraction."
+//
+
+// ================================================================
+// Focused Interfaces
+// ================================================================
+
+// Email capability
+type EmailSender interface {
+	SendEmail(message string) error
+}
+
+// SMS capability
+type SMSSender interface {
+	SendSMS(message string) error
+}
+
+// Push notification capability
+type PushSender interface {
+	SendPush(message string) error
+}
+
+// ================================================================
+// Implementations
+// ================================================================
+
+// Email service only supports email
+type EmailService struct{}
+
+func (e *EmailService) SendEmail(
+	message string,
+) error {
+
+	fmt.Printf(
+		"[EMAIL] %s\n",
+		message,
+	)
+
+	return nil
+}
+
+// SMS service only supports SMS
+type SMSService struct{}
+
+func (s *SMSService) SendSMS(
+	message string,
+) error {
+
+	fmt.Printf(
+		"[SMS] %s\n",
+		message,
+	)
+
+	return nil
+}
+
+// Push service only supports push notifications
+type PushService struct{}
+
+func (p *PushService) SendPush(
+	message string,
+) error {
+
+	fmt.Printf(
+		"[PUSH] %s\n",
+		message,
+	)
+
+	return nil
+}
+
+// ================================================================
+// Clients
+// ================================================================
+
+// Marketing service only depends on email behavior.
+type MarketingService struct {
+	emailSender EmailSender
+}
+
+func NewMarketingService(
+	emailSender EmailSender,
+) *MarketingService {
+
+	return &MarketingService{
+		emailSender: emailSender,
+	}
+}
+
+func (m *MarketingService) SendCampaign() error {
+	return m.emailSender.SendEmail(
+		"Big Billion Day Sale!",
+	)
+}
+
+// OTP service only depends on SMS behavior.
+type OTPService struct {
+	smsSender SMSSender
+}
+
+func NewOTPService(
+	smsSender SMSSender,
+) *OTPService {
+
+	return &OTPService{
+		smsSender: smsSender,
+	}
+}
+
+func (o *OTPService) SendOTP() error {
+	return o.smsSender.SendSMS(
+		"Your OTP is 123456",
+	)
+}
+
+// ================================================================
+// Main
+// ================================================================
+
+func main() {
+
+	emailService := &EmailService{}
+	smsService := &SMSService{}
+
+	marketing :=
+		NewMarketingService(emailService)
+
+	otp :=
+		NewOTPService(smsService)
+
+	marketing.SendCampaign()
+	otp.SendOTP()
+}
