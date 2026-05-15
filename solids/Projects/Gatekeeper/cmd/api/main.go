@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"gatekeeper/config"
+	"gatekeeper/internal/server"
 	"gatekeeper/platform/database"
 	"gatekeeper/platform/logger"
 	"os"
@@ -49,4 +50,6 @@ func main() {
 		panic("can't migrate db " + err.Error())
 	}
 	log.Info().Msg("Database migration completed successfully")
+
+	server.Init(dbConnection.GetConnection())
 }
