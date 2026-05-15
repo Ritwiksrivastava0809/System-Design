@@ -3,5 +3,10 @@ docker-network:
 
 compose-up: docker-network
 	docker-compose up -d
-	
-.PHONY: docker-network
+
+server:
+	go run cmd/api/main.go -e development
+
+
+
+.PHONY: docker-network , compose-up, server
