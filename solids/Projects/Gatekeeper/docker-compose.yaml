@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  postgres16:
+    image: postgres:16-alpine
+
+    container_name: postgres16-gatekeeper
+
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: gatekeeper
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres16-data:/var/lib/postgresql/data
+
+    networks:
+      - gatekeeper-network
+
+volumes:
+  postgres16-data:
+
+networks:
+  gatekeeper-network:
+    driver: bridge
