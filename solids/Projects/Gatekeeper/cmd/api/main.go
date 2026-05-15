@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"gatekeeper/config"
 	"gatekeeper/platform/database"
+	"gatekeeper/platform/logger"
 	"os"
 
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
+
+	logger.InitLogger()
 	environment := flag.String("e", "development", "")
 
 	flag.Usage = func() {
