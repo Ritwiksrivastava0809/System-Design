@@ -1,5 +1,6 @@
 package errorlogs
 
 const (
-	ParsingError = "got error %v on parsing configuration file"
+	ParsingError = "error while parsing the configuration file: %v"
+	ServerError  = "error while starting the server: %v"
 )

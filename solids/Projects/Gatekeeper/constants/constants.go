@@ -6,10 +6,19 @@ const DefaultConfigurationPath = "environment"
 
 // db related constants
 const (
-	DBDriver = "postgres"
+	DBDriver   = "postgres"
+	ConstantDB = "db"
 )
 
 // application related constants
 const (
 	AppName = "Gatekeeper"
+)
+
+// server related constants
+const (
+	Origin        = "origin"
+	ContentLength = "Content-Length"
+	ContentType   = "Content-Type"
+	Authorization = "Authorization"
 )
