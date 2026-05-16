@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"gatekeeper/config"
 	"gatekeeper/internal/server"
+	"gatekeeper/internal/storage/postgres"
+	"gatekeeper/internal/user"
 	"gatekeeper/platform/database"
+	"gatekeeper/platform/hashing"
 	"gatekeeper/platform/logger"
 	"os"
 
@@ -51,5 +54,13 @@ func main() {
 	}
 	log.Info().Msg("Database migration completed successfully")
 
-	server.Init(dbConnection.GetConnection())
+	userRepo := postgres.NewUserRepository(dbConnection.GetConnection())
+
+	hash := hashing.NewArgon2Hasher()
+
+	userService := user.NewService(userRepo, hash)
+
+	userHandler := user.NewUserHandler(userService)
+
+	server.Init(userHandler)
 }

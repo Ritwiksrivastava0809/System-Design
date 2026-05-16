@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"gatekeeper/config"
 	"gatekeeper/constants/errorlogs"
+	"gatekeeper/internal/user"
 
 	"github.com/rs/zerolog/log"
-	"gorm.io/gorm"
 )
 
-func Init(dbConnection *gorm.DB) {
+func Init(userHandler *user.UserHandler) {
 	config := config.GetConfig()
 	// Initialize other server components here, such as routes, middleware, etc.
 
-	router, err := NewServer(dbConnection)
+	router, err := NewServer(userHandler)
 	if err != nil {
 		log.Fatal().Err(err).Msg(fmt.Sprintf(errorlogs.ServerError, err))
 	}
