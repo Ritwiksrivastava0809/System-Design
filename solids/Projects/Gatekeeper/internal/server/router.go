@@ -2,31 +2,24 @@ package server
 
 import (
 	"gatekeeper/constants"
+	"gatekeeper/internal/user"
 	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type Server struct {
-	// Define server fields here, such as router, database connection, etc.
-	db     *gorm.DB
+	server *http.Server
 	router *gin.Engine
 }
 
-func NewServer(dbConnection *gorm.DB) (*Server, error) {
+func NewServer(userHandler *user.UserHandler) (*Server, error) {
 	server := &Server{
-		db: dbConnection,
+		server: &http.Server{},
 	}
 
 	router := gin.Default()
-
-	router.Use(func(c *gin.Context) {
-		c.Set(constants.ConstantDB, dbConnection)
-		c.Next()
-
-	})
 
 	// router.Use(gin.Logger())
 	router.Use(gin.Recovery())
@@ -43,6 +36,13 @@ func NewServer(dbConnection *gorm.DB) (*Server, error) {
 			c.JSON(http.StatusOK, gin.H{"status": "ok"})
 		})
 		// Define other routes here
+
+		userGroup := v0.Group("/users")
+		{
+			userGroup.POST("/", userHandler.CreateUser)
+			// Define other user-related routes here
+		}
+
 	}
 
 	server.router = router

@@ -6,8 +6,9 @@ const DefaultConfigurationPath = "environment"
 
 // db related constants
 const (
-	DBDriver   = "postgres"
-	ConstantDB = "db"
+	DBDriver      = "postgres"
+	ConstantDB    = "db"
+	UserTableName = "users"
 )
 
 // application related constants
