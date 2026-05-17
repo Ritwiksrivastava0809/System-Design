@@ -2,21 +2,25 @@ package user
 
 import (
 	"errors"
+	"gatekeeper/constants"
 	"gatekeeper/platform/hashing"
 	"time"
 
+	"github.com/rs/zerolog"
 	"gorm.io/gorm"
 )
 
 type Service struct {
 	repo UserRepository
 	hash hashing.Hasher
+	log  zerolog.Logger
 }
 
-func NewService(userRepo UserRepository, hash hashing.Hasher) *Service {
+func NewService(userRepo UserRepository, hash hashing.Hasher, logger zerolog.Logger) *Service {
 	return &Service{
 		repo: userRepo,
 		hash: hash,
+		log:  logger,
 	}
 }
 
@@ -24,22 +28,27 @@ func (s *Service) CreateUser(req CreateUserRequest) (*CreateUserResponse, error)
 	//validate user data here , check if email is valid, password meets criteria, etc.
 	err := s.ValidateCreateUser(req)
 	if err != nil {
+		s.log.Warn().Str("email", req.Email).Err(err).Msg(constants.LogUserValidationFailed)
 		return nil, err
 	}
+
 	//check if user with the same email already exists
 	user, err := s.repo.GetUserByEmail(req.Email)
 
 	if err == nil && user != nil {
+		s.log.Warn().Str("email", req.Email).Msg(constants.LogUserEmailAlreadyExists)
 		return nil, ErrEmailAlreadyExists
 	}
 
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		s.log.Error().Str("email", req.Email).Err(err).Msg(constants.LogFailedCheckUserExistence)
 		return nil, err
 	}
 
 	//hash the password before saving to the database
 	hashedPassword, err := s.hash.Hash(req.Password)
 	if err != nil {
+		s.log.Error().Str("email", req.Email).Err(err).Msg(constants.LogFailedHashPassword)
 		return nil, err
 	}
 
@@ -82,6 +91,7 @@ func (s *Service) CreateUser(req CreateUserRequest) (*CreateUserResponse, error)
 	//save the user to the database
 	err = s.repo.CreateUser(user)
 	if err != nil {
+		s.log.Error().Str("email", req.Email).Err(err).Msg(constants.LogFailedSaveUserToDB)
 		return nil, err
 	}
 

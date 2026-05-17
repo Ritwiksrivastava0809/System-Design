@@ -14,4 +14,5 @@ var (
 	ErrUserEmailAlreadyExists    = errors.New("user with this email already exists")
 	ErrUserUsernameAlreadyExists = errors.New("user with this username already exists")
 	ErrEmailAlreadyExists        = errors.New("email already exists")
+	ErrUserNameAlreadyExist      = errors.New("username already exists")
 )

@@ -26,3 +26,25 @@ func InitLogger() {
 		},
 	}).With().Timestamp().Caller().Logger()
 }
+
+func NewLogger() zerolog.Logger {
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+
+	return zerolog.New(
+		zerolog.ConsoleWriter{
+			Out:        os.Stdout,
+			TimeFormat: time.RFC3339Nano,
+
+			FormatLevel: func(i interface{}) string {
+				return strings.ToUpper(fmt.Sprintf("[%s]", i))
+			},
+
+			FormatCaller: func(i interface{}) string {
+				return filepath.Base(fmt.Sprintf("%s", i))
+			},
+		},
+	).With().
+		Timestamp().
+		Caller().
+		Logger()
+}

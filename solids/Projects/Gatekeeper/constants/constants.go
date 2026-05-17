@@ -23,3 +23,22 @@ const (
 	ContentType   = "Content-Type"
 	Authorization = "Authorization"
 )
+
+// user service logging messages
+const (
+	// validation errors
+	LogUserValidationFailed     = "user validation failed with invalid input data"
+	LogUserEmailAlreadyExists   = "user with this email already exists in the system"
+	LogFailedCheckUserExistence = "failed to check if user exists in database"
+	LogUserNameAlreadyExist     = "user with same username exist in database"
+
+	// password processing
+	LogFailedHashPassword = "failed to hash password during user creation"
+
+	// database operations
+	LogFailedSaveUserToDB = "failed to save user to database"
+
+	// handler logs
+	LogValidationError = "request validation failed - invalid input parameters"
+	LogConflictError   = "resource conflict - user already exists"
+)

@@ -54,11 +54,13 @@ func main() {
 	}
 	log.Info().Msg("Database migration completed successfully")
 
+	appLogger := logger.NewLogger()
+
 	userRepo := postgres.NewUserRepository(dbConnection.GetConnection())
 
 	hash := hashing.NewArgon2Hasher()
 
-	userService := user.NewService(userRepo, hash)
+	userService := user.NewService(userRepo, hash, appLogger)
 
 	userHandler := user.NewUserHandler(userService)
 
