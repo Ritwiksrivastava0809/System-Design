@@ -39,3 +39,11 @@ func (r *UserRepository) GetUserByEmail(email string) (*user.User, error) {
 	}
 	return &u, nil
 }
+
+func (r *UserRepository) GetUserByUserName(username string) (*user.User, error) {
+	var u user.User
+	if err := r.db.Where("username = ?", username).First(&u).Error; err != nil {
+		return nil, err
+	}
+	return &u, nil
+}

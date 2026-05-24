@@ -9,3 +9,8 @@ database:
   password: "password"
   name: "gatekeeper"
   sslmode: "disable"
+
+token:
+  internal: "7MzCLAmHrgz5bBUGzI5KrTIrkG0vyQkKs"
+  symmetric: "Kg4gc&+9v4vLq;kqK#CNtE}hW3dNn:VM"
+  access_token_duration: "15m"

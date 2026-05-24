@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"gatekeeper/config"
+	authentication "gatekeeper/internal/Authentication"
 	"gatekeeper/internal/server"
 	"gatekeeper/internal/storage/postgres"
 	"gatekeeper/internal/user"
@@ -64,5 +65,11 @@ func main() {
 
 	userHandler := user.NewUserHandler(userService)
 
-	server.Init(userHandler)
+	tokenService := authentication.NewTokenService(config.GetSymmetricKey())
+
+	authRepo := authentication.NewAuthService(userRepo, tokenService, hash, appLogger)
+
+	authHandler := authentication.NewAuthHandler(authRepo)
+	
+	server.Init(userHandler, authHandler)
 }

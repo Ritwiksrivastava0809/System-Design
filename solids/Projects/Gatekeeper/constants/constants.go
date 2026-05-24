@@ -39,6 +39,18 @@ const (
 	LogFailedSaveUserToDB = "failed to save user to database"
 
 	// handler logs
-	LogValidationError = "request validation failed - invalid input parameters"
-	LogConflictError   = "resource conflict - user already exists"
+	LogValidationError  = "request validation failed - invalid input parameters"
+	LogConflictError    = "resource conflict - user already exists"
+	LogUserDoesNotExist = "failed to fetch user - user with given username not exist"
+	LogInvalidPassword  = "invalid user credentials - provided password is incorrect"
+	LogTokenkErr        = "failed to generate token"
+)
+
+// Authentication related constant
+const (
+	MinSecretKeyLen           = 32
+	ExipredToken              = "token has expired"
+	InvalidToken              = "token is invalid"
+	JWTValidationErrorExpired = 512
+	UserName                  = "username"
 )
