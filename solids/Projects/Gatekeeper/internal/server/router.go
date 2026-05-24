@@ -2,6 +2,7 @@ package server
 
 import (
 	"gatekeeper/constants"
+	authentication "gatekeeper/internal/Authentication"
 	"gatekeeper/internal/user"
 	"net/http"
 
@@ -14,7 +15,7 @@ type Server struct {
 	router *gin.Engine
 }
 
-func NewServer(userHandler *user.UserHandler) (*Server, error) {
+func NewServer(userHandler *user.UserHandler, authHandler *authentication.AuthHandler) (*Server, error) {
 	server := &Server{
 		server: &http.Server{},
 	}
@@ -41,6 +42,12 @@ func NewServer(userHandler *user.UserHandler) (*Server, error) {
 		{
 			userGroup.POST("/", userHandler.CreateUser)
 			// Define other user-related routes here
+		}
+
+		authGroup := v0.Group("/authenticate")
+		{
+			authGroup.POST("/login", authHandler.Login)
+			authGroup.POST("/logout", authHandler.Logout)
 		}
 
 	}

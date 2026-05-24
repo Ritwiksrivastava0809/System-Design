@@ -8,4 +8,5 @@ const (
 	SaltGenerationError = "error while generating salt: %v"
 	BindJsonError       = "error while binding JSON"
 	CreateUserError     = "error while creating user: %v"
+	InvalidKeySize      = "invalid key size : must be atleast %d characters long"
 )
